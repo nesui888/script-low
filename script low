@@ -1,0 +1,76 @@
+-- PlaX Hub V4 (Optimized Version)
+local Rayfield = loadstring(game:HttpGet('https://sirius.menu/rayfield'))()
+local W = Rayfield:CreateWindow({Name = "🎮 PlaX Hub V4 [Optimized]", LoadingTitle = "กำลังโหลด...", ConfigurationSaving = {Enabled = true, FolderName = "PlaX", FileName = "Config"}, KeySystem = false})
+
+local Plrs, RS, Lg, VU, UIS, TS, LP = game:GetService("Players"), game:GetService("RunService"), game:GetService("Lighting"), game:GetService("VirtualUser"), game:GetService("UserInputService"), game:GetService("TeleportService"), game:GetService("Players").LocalPlayer
+local Tab1, Tab2, Tab3, Tab4 = W:CreateTab("⚡ โหมด FPS", 4483362458), W:CreateTab("🏃‍♂️ การเคลื่อนที่", 4483362458), W:CreateTab("👁️ มองทะลุ & วาร์ป", 4483362458), W:CreateTab("🛡️ ระบบเสริม", 4483362458)
+
+-- 1. FPS & Graphics
+local Stat = Tab1:CreateParagraph({Title = "📊 สถานะระบบ", Content = "กำลังโหลด..."})
+task.spawn(function() while task.wait(1) do pcall(function()
+    Stat:Set({Title = "📊 สถานะระบบ", Content = string.format("⚡ FPS: %d | 🏓 ปิง: %d ms | 💾 แรม: %d MB", math.floor(1/RS.RenderStepped:Wait()), math.floor(LP:GetNetworkPing()*1000), math.floor(collectgarbage("count")/1024))})
+end) end end)
+
+Tab1:CreateButton({Name = "🚀 บูสต์ FPS ขั้นสุด", Callback = function() pcall(function()
+    Lg.GlobalShadows, Lg.FogEnd = false, 9e9
+    for _,v in pairs(workspace:GetDescendants()) do if v:IsA("BasePart") then v.Material, v.Reflectance, v.CastShadow = Enum.Material.SmoothPlastic, 0, false elseif v:IsA("Decal") or v:IsA("Texture") or v:IsA("ParticleEmitter") then v:Destroy() end end
+    Rayfield:Notify({Title = "🚀 บูสต์ FPS", Content = "ลื่นปรื๊ด!", Duration = 2})
+end) end})
+
+Tab1:CreateToggle({Name = "💡 สว่างขั้นสุด", CurrentValue = false, Flag = "FB", Callback = function(V)
+    Lg.Brightness, Lg.ClockTime, Lg.GlobalShadows, Lg.OutdoorAmbient = V and 2 or 1, V and 14 or 12, not V, V and Color3.new(1,1,1) or Color3.new(0.5,0.5,0.5)
+end})
+
+-- 2. Movement
+local WS, JP, SE, JE = 16, 50, false, false
+Tab2:CreateToggle({Name = "⚡ เปิดล็อกความเร็ว", CurrentValue = false, Flag = "ST", Callback = function(V) SE = V end})
+Tab2:CreateSlider({Name = "🏃‍♂️ ความเร็วเดิน", Range = {16, 250}, Increment = 1, CurrentValue = 16, Flag = "SS", Callback = function(V) WS = V end})
+Tab2:CreateToggle({Name = "🦘 เปิดล็อกกระโดด", CurrentValue = false, Flag = "JT", Callback = function(V) JE = V end})
+Tab2:CreateSlider({Name = "🚀 ความสูงกระโดด", Range = {50, 250}, Increment = 1, CurrentValue = 50, Flag = "JS", Callback = function(V) JP = V end})
+
+RS.Heartbeat:Connect(function() pcall(function()
+    if LP.Character and LP.Character:FindFirstChild("Humanoid") then
+        if SE then LP.Character.Humanoid.WalkSpeed = WS end
+        if JE then LP.Character.Humanoid.JumpPower = JP end
+    end
+end) end)
+
+local IJ = false
+Tab2:CreateToggle({Name = "🕊️ กระโดดบนอากาศ", CurrentValue = false, Flag = "IJ", Callback = function(V) IJ = V end})
+UIS.JumpRequest:Connect(function() if IJ then pcall(function() LP.Character.Humanoid:ChangeState("Jumping") end) end)
+
+local NC
+Tab2:CreateToggle({Name = "👻 ทะลุกำแพง", CurrentValue = false, Flag = "NC", Callback = function(V)
+    if V then NC = RS.Stepped:Connect(function() pcall(function() for _,v in pairs(LP.Character:GetDescendants()) do if v:IsA("BasePart") then v.CanCollide = false end end end) end)
+    else if NC then NC:Disconnect() NC = nil end end
+end})
+
+-- 3. ESP & Teleport
+local ESP = false
+Tab3:CreateToggle({Name = "👁️ เปิด ESP", CurrentValue = false, Flag = "ESP", Callback = function(V) ESP = V if not V then for _,p in pairs(Plrs:GetPlayers()) do if p.Character and p.Character:FindFirstChild("HESP") then p.Character.HESP:Destroy() end end end end})
+RS.RenderStepped:Connect(function() if ESP then for _,p in pairs(Plrs:GetPlayers()) do if p ~= LP and p.Character and p.Character:FindFirstChild("HumanoidRootPart") and not p.Character:FindFirstChild("HESP") then
+    local h = Instance.new("Highlight", p.Character) h.Name, h.FillColor, h.OutlineColor, h.FillTransparency = "HESP", Color3.new(1,0,0), Color3.new(1,1,1), 0.5
+end end end)
+
+local PList, Sel = {}, nil
+for _,p in pairs(Plrs:GetPlayers()) do if p ~= LP then table.insert(PList, p.Name) end end
+Plrs.PlayerAdded:Connect(function(p) if p ~= LP then table.insert(PList, p.Name) end end)
+Plrs.PlayerRemoving:Connect(function(p) for i,v in ipairs(PList) do if v == p.Name then table.remove(PList, i) end end end)
+
+Tab3:CreateDropdown({Name = "🎯 เลือกผู้เล่นวาร์ป", Options = PList, CurrentOption = "", Flag = "DP", Callback = function(O) Sel = O end})
+Tab3:CreateButton({Name = "⚡ วาร์ปไปหา", Callback = function() pcall(function()
+    local t = Plrs:FindFirstChild(Sel) if t and t.Character and t.Character:FindFirstChild("HumanoidRootPart") then LP.Character.HumanoidRootPart.CFrame = t.Character.HumanoidRootPart.CFrame + Vector3.new(0,3,0) end
+end) end})
+
+-- 4. Utility
+Tab4:CreateToggle({Name = "💤 ระบบกันหลุด (Anti-AFK)", CurrentValue = false, Flag = "AFK", Callback = function(V)
+    if V then _G.AFK = LP.Idled:Connect(function() VU:Button2Down(Vector2.new(0,0), workspace.CurrentCamera.CFrame) task.wait(0.1) VU:Button2Up(Vector2.new(0,0), workspace.CurrentCamera.CFrame) end)
+    else if _G.AFK then _G.AFK:Disconnect() _G.AFK = nil end end
+end})
+
+Tab4:CreateSlider({Name = "🎥 ปรับมุมมอง FOV", Range = {70, 120}, Increment = 1, CurrentValue = 70, Flag = "FOV", Callback = function(V) workspace.CurrentCamera.FieldOfView = V end})
+Tab4:CreateButton({Name = "🔀 สลับเซิร์ฟเวอร์", Callback = function() task.spawn(function()
+    local s = game:GetService("HttpService"):JSONDecode(game:HttpGet("https://games.roblox.com/v1/games/"..game.PlaceId.."/servers/Public?sortOrder=Asc&limit=100"))
+    for _,v in pairs(s.data) do if v.playing < v.maxPlayers then TS:TeleportToPlaceInstance(game.PlaceId, v.id, LP) break end end
+end) end})
+Tab4:CreateButton({Name = "🚨 ปิด UI ทันที", Callback = function() Rayfield:Destroy() end})
